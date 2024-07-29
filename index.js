@@ -11,34 +11,24 @@ const NEWS_API_URL = `https://newsapi.org/v2/top-headlines?country=fr&apiKey=${p
 const WEATHER_API_URL = 'https://api.openweathermap.org/data/2.5/weather';
 const FORECAST_API_URL = 'https://api.openweathermap.org/data/2.5/forecast';
 
-// Fonction pour obtenir l'emoji en fonction des conditions météorologiques
+// Fonction pour obtenir l'emoji en fonction des conditions météorologiques en français
 const getWeatherEmoji = (description) => {
     const weatherConditions = {
-        'clear sky': '☀️',
-        'few clouds': '🌤️',
-        'scattered clouds': '🌥️',
-        'broken clouds': '☁️',
-        'shower rain': '🌧️',
-        'rain': '🌧️',
-        'thunderstorm': '⛈️',
-        'snow': '❄️',
-        'mist': '🌫️',
+        'ciel dégagé': '☀️',
+        'quelques nuages': '🌤️',
+        'nuageux épars': '⛅',
+        'nuageux': '☁️',
+        'partiellement nuageux': '☁️',
+        'averses': '🌦️',
+        'légère pluie': '🌧️',
+        'pluie': '🌧️',
+        'orage': '⛈️',
+        'neige': '❄️',
+        'brume': '🌫️',
+        'brouillard': '🌫️',
+        'poussière': '🌪️'
     };
-    return weatherConditions[description] || '🌈'; // Emoji par défaut
-};
-
-// Fonction pour obtenir la pastille de couleur en fonction des alertes
-const getAlertColor = (alertLevel) => {
-    switch (alertLevel) {
-        case 'info':
-            return ':blue_circle:'; // Pastille bleue
-        case 'warning':
-            return ':yellow_circle:'; // Pastille jaune
-        case 'danger':
-            return ':red_circle:'; // Pastille rouge
-        default:
-            return ''; // Pas de pastille
-    }
+    return weatherConditions[description] || '🌈'; // Emoji par défaut si non trouvé
 };
 
 const commands = [
@@ -166,17 +156,11 @@ client.on('interactionCreate', async interaction => {
 
             const currentWeather = currentWeatherResponse.data;
 
+            const weatherEmoji = getWeatherEmoji(currentWeather.weather[0].description);
+
             let weatherMessage = `Météo actuelle à ${currentWeather.name} :\n`;
             weatherMessage += `Température : ${currentWeather.main.temp}°C\n`;
-            weatherMessage += `Condition : ${getWeatherEmoji(currentWeather.weather[0].description)} ${currentWeather.weather[0].description}\n`;
-
-            // Si des alertes météo sont disponibles
-            if (currentWeather.alerts) {
-                currentWeather.alerts.forEach(alert => {
-                    const alertColor = getAlertColor(alert.severity);
-                    weatherMessage += `${alertColor} ${alert.description}\n`;
-                });
-            }
+            weatherMessage += `Condition : ${weatherEmoji} ${currentWeather.weather[0].description}\n`;
 
             await interaction.reply(weatherMessage);
         } catch (error) {
@@ -208,7 +192,8 @@ client.on('interactionCreate', async interaction => {
             let weatherMessage = `Prévisions pour ${forecast.city.name} :\n`;
             for (let i = 0; i < forecast.list.length; i += 8) {
                 const date = new Date(forecast.list[i].dt * 1000);
-                weatherMessage += `${date.toLocaleDateString('fr-FR')}: Température min ${forecast.list[i].main.temp_min}°C, max ${forecast.list[i].main.temp_max}°C, condition ${getWeatherEmoji(forecast.list[i].weather[0].description)} ${forecast.list[i].weather[0].description}\n`;
+                const weatherEmoji = getWeatherEmoji(forecast.list[i].weather[0].description);
+                weatherMessage += `${date.toLocaleDateString('fr-FR')}: Température min ${forecast.list[i].main.temp_min}°C, max ${forecast.list[i].main.temp_max}°C, condition ${weatherEmoji} ${forecast.list[i].weather[0].description}\n`;
             }
 
             await interaction.reply(weatherMessage);
@@ -231,4 +216,5 @@ client.on('interactionCreate', async interaction => {
     }
 });
 
+// Assurez-vous que cette ligne est complète et correctement fermée
 client.login(process.env.DISCORD_TOKEN);
